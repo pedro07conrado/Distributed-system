@@ -8,7 +8,6 @@ const SUCCESS = 1, ERROR = 2;
 
 class Reader {
   constructor(socket) {
-    // TCP entrega bytes em pedaços. Este buffer guarda os que ainda não lemos.
     this.buffer = Buffer.alloc(0);
     this.waiting = null;
     this.error = null;
@@ -152,7 +151,7 @@ async function getFile(socket, reader, name) {
     const file = await fs.open(temporary, 'w');
     try {
       for (let i = 0; i < size; i++) {
-        await file.write(await reader.read(1)); // Recebe byte a byte.
+        await file.write(await reader.read(1));
       }
     } finally {
       await file.close();
