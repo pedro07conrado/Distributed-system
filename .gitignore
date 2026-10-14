@@ -17,8 +17,8 @@
 hs_err_pid*
 replay_pid*
 
-atividade-01/questao-01/out/
-atividade-01/questao-02/out/
-atividade-01/questao-02/logs/
-atividade-01/questao-02/downloads/
-atividade-01/questao-02/server-data/
+socket-tcp/questao-01/out/
+socket-tcp/questao-02/out/
+socket-tcp/questao-02/logs/
+socket-tcp/questao-02/downloads/
+socket-tcp/questao-02/server-data/

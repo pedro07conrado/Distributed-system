@@ -4,7 +4,7 @@ O servidor usa **Java 17** e o cliente usa **JavaScript com Node.js 18+**, apena
 
 ## Executar
 
-Abra um terminal nesta pasta (`atividade-01/questao-01`) e compile:
+Abra um terminal nesta pasta (`socket-tcp/questao-01`) e compile:
 
 ```powershell
 New-Item -ItemType Directory -Force out | Out-Null
