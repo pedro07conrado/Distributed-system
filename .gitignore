@@ -22,3 +22,8 @@ socket-tcp/questao-02/out/
 socket-tcp/questao-02/logs/
 socket-tcp/questao-02/downloads/
 socket-tcp/questao-02/server-data/
+
+# Ambiente e bytecode Python da atividade WebSocket
+.venv/
+__pycache__/
+*.pyc
