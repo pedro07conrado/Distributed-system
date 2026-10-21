@@ -27,3 +27,9 @@ socket-tcp/questao-02/server-data/
 .venv/
 __pycache__/
 *.pyc
+
+# Dependências e banco local da atividade RED
+node_modules/
+red-filmes/.runtime/
+red-filmes/sampledata.archive
+red-filmes/.env
