@@ -22,3 +22,10 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Saída da compilação da Atividade 01
+atividade-01/questao-01/out/
+atividade-01/questao-02/out/
+atividade-01/questao-02/logs/
+atividade-01/questao-02/downloads/
+atividade-01/questao-02/server-data/
