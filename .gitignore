@@ -1,16 +1,11 @@
-# Compiled class file
 *.class
 
-# Log file
 *.log
 
-# BlueJ files
 *.ctxt
 
-# Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
 *.jar
 *.war
 *.nar
@@ -19,13 +14,22 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
 
-# Saída da compilação da Atividade 01
-atividade-01/questao-01/out/
-atividade-01/questao-02/out/
-atividade-01/questao-02/logs/
-atividade-01/questao-02/downloads/
-atividade-01/questao-02/server-data/
+socket-tcp/questao-01/out/
+socket-tcp/questao-02/out/
+socket-tcp/questao-02/logs/
+socket-tcp/questao-02/downloads/
+socket-tcp/questao-02/server-data/
+
+# Ambiente e bytecode Python da atividade WebSocket
+.venv/
+__pycache__/
+*.pyc
+
+# Dependências e banco local da atividade RED
+node_modules/
+red-filmes/.runtime/
+red-filmes/sampledata.archive
+red-filmes/.env

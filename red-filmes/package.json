@@ -1,0 +1,12 @@
+{
+  "name": "red-filmes",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cliente TCP com Protocol Buffers para a atividade RED",
+  "scripts": {
+    "start": "node client/client.js",
+    "test": "node --test test/integration.test.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": { "protobufjs": "8.8.1" }
+}

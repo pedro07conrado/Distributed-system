@@ -2,8 +2,6 @@ const net = require('node:net');
 const crypto = require('node:crypto');
 const readline = require('node:readline');
 
-// DataOutputStream.writeUTF usa UTF modificado: primeiro 2 bytes de tamanho,
-// depois os caracteres UTF-16 (incluindo pares substitutos) codificados.
 function writeUTF(socket, text) {
   const bytes = [];
   for (let i = 0; i < text.length; i++) {
@@ -26,8 +24,6 @@ function writeUTF(socket, text) {
 
 class Reader {
   constructor(socket) {
-    // TCP entrega bytes; uma resposta pode chegar em vários pedaços.
-    // Guardamos os bytes até completar a quantidade que precisamos ler.
     this.buffer = Buffer.alloc(0);
     this.waiting = null;
     this.error = null;
@@ -70,7 +66,6 @@ class Reader {
   async readUTF() {
     const length = (await this.read(2)).readUInt16BE();
     const bytes = await this.read(length);
-    // Decodifica UTF modificado como unidades UTF-16, tal como readUTF do Java.
     const codes = [];
     for (let i = 0; i < bytes.length;) {
       const first = bytes[i++];

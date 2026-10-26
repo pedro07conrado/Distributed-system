@@ -1,0 +1,41 @@
+body {
+  font-family: Arial, sans-serif;
+  max-width: 900px;
+  margin: 24px;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+section {
+  margin-bottom: 24px;
+}
+
+input[type="number"] {
+  width: 80px;
+}
+
+.log {
+  border: 1px solid #aaa;
+  padding: 6px;
+  margin-top: 10px;
+  height: 80px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  font-family: monospace;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #aaa;
+  padding: 6px 12px;
+  text-align: left;
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket - Monitoramento de hosts</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script_objeto_de_aprendizagem.js" defer></script>
+</head>
+<body>
+  <h1>WebSocket</h1>
+
+  <section>
+    <h2>1. Conexão</h2>
+    <form onsubmit="event.preventDefault(); connectWebSocket()">
+      <label for="serverUrl">Servidor:</label>
+      <input id="serverUrl" type="text" value="ws://localhost:8765" required>
+      <button id="connectBtn" type="submit">Conectar</button>
+      <button id="disconnectBtn" type="button" onclick="disconnectWebSocket()" disabled>Desconectar</button>
+    </form>
+    <div id="connectionLog" class="log" role="log" aria-label="Log da conexão"></div>
+  </section>
+
+  <section>
+    <h2>2. Enviar e receber mensagem</h2>
+    <form onsubmit="event.preventDefault(); sendFirstMessage()">
+      <label for="messageInput">Mensagem:</label>
+      <input id="messageInput" type="text" value="Olá servidor" required>
+      <button id="firstMessageButton" type="submit" disabled>Enviar mensagem</button>
+    </form>
+    <div id="firstMessageLog" class="log" role="log" aria-label="Log das mensagens"></div>
+  </section>
+
+  <section>
+    <h2>3. Monitorar host</h2>
+    <form onsubmit="event.preventDefault(); monitorHost()">
+      <p>
+        <label for="hostInput">Host:</label>
+        <input id="hostInput" type="text" value="google.com" required>
+      </p>
+      <p>
+        <label for="intervalInput">Intervalo (segundos):</label>
+        <input id="intervalInput" type="number" value="5" min="1" max="3600" step="1" required>
+      </p>
+      <p>
+        <label for="portInput">Porta TCP:</label>
+        <input id="portInput" type="number" value="443" min="1" max="65535" step="1" required>
+      </p>
+      <button id="monitorBtn" type="submit" disabled>Iniciar monitoramento</button>
+    </form>
+    <div id="messageLog" class="log" role="log" aria-label="Log do monitoramento"></div>
+  </section>
+
+  <section>
+    <h2>4. Hosts monitorados</h2>
+    <p>Adicione um host por vez no formulário acima. Os resultados são atualizados automaticamente.</p>
+    <table>
+      <thead>
+        <tr><th scope="col">Host</th><th scope="col">Status TCP</th></tr>
+      </thead>
+      <tbody id="hostList"></tbody>
+    </table>
+    <p>up: conexão TCP aceita. down: falha na conexão ou tempo limite excedido.</p>
+  </section>
+</body>
+</html>

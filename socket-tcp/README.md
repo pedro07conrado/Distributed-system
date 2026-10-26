@@ -1,4 +1,4 @@
-# Atividade 01 — Programação com sockets TCP
+# Socket TCP — Atividade 01
 
 - [Questão 1](questao-01/README.md): servidor de navegação em diretórios, com autenticação e múltiplos clientes. Implementada.
 - [Questão 2](questao-02/README.md): gerenciamento remoto de arquivos com protocolo binário. Implementada.

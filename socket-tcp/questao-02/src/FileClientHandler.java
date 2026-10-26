@@ -35,7 +35,7 @@ public class FileClientHandler implements Runnable {
                 try {
                     type = input.readUnsignedByte();
                 } catch (EOFException e) {
-                    break; // O cliente fechou a conexão.
+                    break;
                 }
                 int command = input.readUnsignedByte();
                 int nameSize = input.readUnsignedByte();
@@ -72,10 +72,10 @@ public class FileClientHandler implements Runnable {
         try {
             try (OutputStream file = Files.newOutputStream(temporary)) {
                 for (long i = 0; i < size; i++) {
-                    file.write(input.readUnsignedByte()); // Transferência byte a byte.
+                    file.write(input.readUnsignedByte());
                 }
             }
-            Files.move(temporary, target); // Falha se outro cliente criou o mesmo nome.
+            Files.move(temporary, target);
             reply(output, Protocol.ADD_FILE, Protocol.SUCCESS, filename);
         } catch (IOException e) {
             reply(output, Protocol.ADD_FILE, Protocol.ERROR, filename);
@@ -157,7 +157,7 @@ public class FileClientHandler implements Runnable {
                     if (byteValue == -1) {
                         throw new EOFException("Arquivo alterado durante o download");
                     }
-                    output.writeByte(byteValue); // Transferência byte a byte.
+                    output.writeByte(byteValue);
                 }
             }
             log(Protocol.GET_FILE, Protocol.SUCCESS, filename);

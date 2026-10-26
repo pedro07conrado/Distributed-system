@@ -20,7 +20,7 @@ public class Protocol {
         input.readFully(name);
         String filename = new String(name, StandardCharsets.UTF_8);
         if (!Arrays.equals(name, filename.getBytes(StandardCharsets.UTF_8))) {
-            return ""; // Sequência UTF-8 inválida.
+            return "";
         }
         return filename;
     }

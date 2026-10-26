@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package red;
+
+// Campos de sample_mflix.movies, exceto imdb, tomatoes e awards.
+message Movie {
+  string id = 1;
+  optional string title = 2;
+  // A Mflix contém anos numéricos e intervalos de séries, como "1994–1998".
+  optional string year = 3;
+  optional string plot = 4;
+  optional string fullplot = 5;
+  optional int32 runtime = 6;
+  repeated string cast = 7;
+  repeated string genres = 8;
+  repeated string directors = 9;
+  repeated string writers = 10;
+  repeated string countries = 11;
+  repeated string languages = 12;
+  optional string rated = 13;
+  optional string released = 14;
+  optional string poster = 15;
+  optional string type = 16;
+  optional int32 num_mflix_comments = 17;
+  optional string lastupdated = 18;
+}
+
+enum Operation {
+  UNSPECIFIED = 0;
+  CREATE = 1;
+  READ = 2;
+  UPDATE = 3;
+  DELETE = 4;
+  LIST = 5;
+  BY_ACTOR = 6;
+  BY_CATEGORY = 7;
+}
+
+message Request {
+  Operation operation = 1;
+  string id = 2;
+  Movie movie = 3;
+  string filter = 4;
+  uint32 limit = 5;
+  uint32 offset = 6;
+  // Campos a atualizar, inclusive para detectar listas vazias enviadas.
+  repeated string fields = 7;
+}
+
+message Response {
+  bool ok = 1;
+  string error_code = 2;
+  string message = 3;
+  repeated Movie movies = 4;
+  uint32 total = 5;
+}
