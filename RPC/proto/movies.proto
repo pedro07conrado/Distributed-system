@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package rpcmovies;
+
+// Cada método é uma chamada remota gRPC, disponível nas duas linguagens.
+service MovieService {
+  rpc CreateMovie(CreateMovieRequest) returns (MovieResponse);
+  rpc GetMovie(MovieId) returns (MovieResponse);
+  rpc UpdateMovie(UpdateMovieRequest) returns (MovieResponse);
+  rpc DeleteMovie(MovieId) returns (DeleteMovieResponse);
+  rpc ListMovies(ListMoviesRequest) returns (MovieList);
+  rpc ListByActor(FilterRequest) returns (MovieList);
+  rpc ListByCategory(FilterRequest) returns (MovieList);
+}
+
+// Campos da coleção sample_mflix.movies; imdb, tomatoes e awards são omitidos.
+message Movie {
+  string id = 1;
+  optional string title = 2;
+  // Anos únicos e intervalos de séries, como "1994–1998".
+  optional string year = 3;
+  optional string plot = 4;
+  optional string fullplot = 5;
+  optional int32 runtime = 6;
+  repeated string cast = 7;
+  repeated string genres = 8;
+  repeated string directors = 9;
+  repeated string writers = 10;
+  repeated string countries = 11;
+  repeated string languages = 12;
+  optional string rated = 13;
+  optional string released = 14;
+  optional string poster = 15;
+  optional string type = 16;
+  optional int32 num_mflix_comments = 17;
+  optional string lastupdated = 18;
+}
+
+message CreateMovieRequest {
+  Movie movie = 1;
+  // Registra também campos de lista explicitamente informados como vazios.
+  repeated string fields = 2;
+}
+message MovieId { string id = 1; }
+message UpdateMovieRequest {
+  string id = 1;
+  Movie movie = 2;
+  // Detecta inclusive listas vazias; campos omitidos são preservados.
+  repeated string fields = 3;
+}
+message ListMoviesRequest {
+  uint32 limit = 1;
+  uint32 offset = 2;
+}
+message FilterRequest {
+  string filter = 1;
+  uint32 limit = 2;
+  uint32 offset = 3;
+}
+message MovieResponse { Movie movie = 1; }
+message DeleteMovieResponse {
+  string id = 1;
+  string message = 2;
+}
+message MovieList {
+  repeated Movie movies = 1;
+  uint32 total = 2;
+}

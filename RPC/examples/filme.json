@@ -1,0 +1,12 @@
+{
+  "title": "Filme da atividade RPC",
+  "year": 2026,
+  "plot": "Um grupo implementa chamadas remotas entre duas linguagens.",
+  "runtime": 90,
+  "cast": ["Ator de Exemplo", "Atriz de Exemplo"],
+  "genres": ["Drama"],
+  "directors": ["Diretor de Exemplo"],
+  "countries": ["Brazil"],
+  "languages": ["Portuguese"],
+  "type": "movie"
+}
