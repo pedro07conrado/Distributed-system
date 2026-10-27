@@ -10,8 +10,8 @@ if (-not $OutputPath) {
 $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
 # Lista explícita: executáveis do banco, dados e dependências ficam fora da entrega.
 $includedPaths = @(
-    'client', 'examples', 'proto', 'scripts', 'server', 'test',
-    'package.json', 'package-lock.json', 'requirements.txt', 'README.md', 'compose.yaml', '.gitignore'
+    'client', 'examples', 'proto', 'scripts', 'server', 'test', '.mvn',
+    'pom.xml', 'mvnw', 'mvnw.cmd', 'requirements.txt', 'README.md', 'compose.yaml', '.gitignore', '.gitattributes'
 )
 $files = foreach ($relativePath in $includedPaths) {
     $item = Get-Item -LiteralPath (Join-Path $projectRoot $relativePath)

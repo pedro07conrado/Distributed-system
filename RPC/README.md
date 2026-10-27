@@ -1,30 +1,40 @@
 # Atividade RPC — Gerenciamento de filmes
 
-Servidor **Python** e cliente de terminal **Node.js**, em linguagens distintas, usando **gRPC** e os dados da coleção **`sample_mflix.movies`** do MongoDB. Implementa CRUD, listagem geral, filtros por ator e categoria e devolução de erros ao cliente.
+Servidor **Python** e cliente de terminal **Java 17**, em linguagens distintas, usando **gRPC** e os dados da coleção **`sample_mflix.movies`** do MongoDB. Implementa CRUD, listagem geral, filtros por ator e categoria e devolução de erros ao cliente.
 
 ```text
-Cliente Node.js                 Servidor Python                  MongoDB
-@grpc/grpc-js  <-- gRPC -->  MovieService / PyMongo  <-- driver -->  sample_mflix.movies
+Cliente Java                    Servidor Python                  MongoDB
+stub gRPC     <-- gRPC -->  MovieService / PyMongo  <-- driver -->  sample_mflix.movies
                    |
            proto/movies.proto
 ```
 
-O arquivo `.proto` define mensagens e métodos remotos. O Python usa os stubs gerados por `grpcio-tools`; o Node.js carrega o mesmo contrato com `@grpc/proto-loader`. O gRPC cuida do transporte HTTP/2 e da serialização Protobuf, sem implementar manualmente frames de socket.
+O arquivo `.proto` define mensagens e métodos remotos. O Python usa os stubs gerados por `grpcio-tools`; o Java usa o stub tipado `MovieServiceGrpc` gerado pelo plugin do Maven. O gRPC cuida do transporte HTTP/2 e da serialização Protobuf, sem implementar manualmente frames de socket.
 
 ## 1. Preparar as dependências
 
-Requer Windows, Python 3.11+ e Node.js 18+. Na raiz do repositório:
+Requer Windows, Python 3.11+ e **JDK 17 ou superior** (`java` e `javac` disponíveis no PATH, ou `JAVA_HOME` apontando para o JDK). Na raiz do repositório:
 
 ```powershell
 cd RPC
 .\scripts\setup.ps1
 ```
 
-O script cria `.venv`, instala as dependências Python/Node e gera `server/movies_pb2.py` e `server/movies_pb2_grpc.py`. Ele não instala MongoDB. Os arquivos gerados também acompanham o código, e podem ser regenerados com:
+O script cria `.venv`, instala as dependências Python, gera os stubs Python e compila o cliente Java em `target/filmes-client.jar`, incluindo suas bibliotecas. O **Maven Wrapper** (`mvnw.cmd`) baixa o Maven para o cache do usuário em `.m2`, fora do projeto; não é necessário instalar Maven separadamente. As dependências Java também ficam nesse cache. O script não instala MongoDB.
+
+Os stubs Python acompanham o código e podem ser regenerados com:
 
 ```powershell
 .\.venv\Scripts\python.exe -m grpc_tools.protoc -I proto --python_out=server --grpc_python_out=server proto/movies.proto
 ```
+
+Para gerar os stubs Java e recompilar o cliente:
+
+```powershell
+.\mvnw.cmd -B -ntp package
+```
+
+As classes Java geradas ficam em `target/generated-sources/protobuf`. O JAR executável fica em `target/filmes-client.jar`. Esses arquivos são gerados durante a preparação e não entram no ZIP de entrega. O wrapper de terminal `mvnw` também está incluído para quem usar Maven em Linux/macOS; o fluxo de preparação documentado é para PowerShell no Windows.
 
 ## 2. Disponibilizar o banco e os dados Mflix
 
@@ -55,7 +65,7 @@ $env:MONGODB_URI = 'mongodb://127.0.0.1:27017'
 $env:MONGODB_DATABASE = 'sample_mflix'
 ```
 
-No Atlas, substitua `MONGODB_URI` pela URI do cluster e carregue a amostra pela interface do Atlas. Credenciais são lidas do ambiente e não devem ser adicionadas ao código. O cliente Node.js conhece somente o endereço do serviço gRPC.
+No Atlas, substitua `MONGODB_URI` pela URI do cluster e carregue a amostra pela interface do Atlas. Credenciais são lidas do ambiente e não devem ser adicionadas ao código. O cliente Java conhece somente o endereço do serviço gRPC.
 
 ## 3. Executar
 
@@ -68,34 +78,34 @@ Na pasta `RPC`, inicie o servidor:
 Em outro terminal, também na pasta `RPC`, abra o menu do cliente:
 
 ```powershell
-node client/client.js
+java -jar target/filmes-client.jar
 ```
 
-O serviço atende em `127.0.0.1:50051`. Para outro endereço/porta, use `server/server.py --host 127.0.0.1 --port 50052` e `client/client.js --host 127.0.0.1 --port 50052`. A configuração de demonstração usa gRPC local sem TLS; a conexão do MongoDB é configurada separadamente.
+O serviço atende em `127.0.0.1:50051`. Para outro endereço/porta, use `server/server.py --host 127.0.0.1 --port 50052` e `java -jar target/filmes-client.jar --host 127.0.0.1 --port 50052`. A configuração de demonstração usa gRPC local sem TLS; a conexão do MongoDB é configurada separadamente.
 
 Também é possível chamar cada operação diretamente:
 
 ```powershell
-node client/client.js listar 5
-node client/client.js buscar 573a1390f29313caabcd42e8
-node client/client.js ator "Tom Hanks" --limit 5
-node client/client.js categoria Drama --limit 5
-node client/client.js criar examples/filme.json
+java -jar target/filmes-client.jar listar 5
+java -jar target/filmes-client.jar buscar 573a1390f29313caabcd42e8
+java -jar target/filmes-client.jar ator "Tom Hanks" --limit 5
+java -jar target/filmes-client.jar categoria Drama --limit 5
+java -jar target/filmes-client.jar criar examples/filme.json
 ```
 
 O cadastro retorna o `id` do filme. Substitua `CODIGO` por esse valor:
 
 ```powershell
-node client/client.js buscar CODIGO
-node client/client.js atualizar CODIGO examples/alteracao.json
-node client/client.js excluir CODIGO
+java -jar target/filmes-client.jar buscar CODIGO
+java -jar target/filmes-client.jar atualizar CODIGO examples/alteracao.json
+java -jar target/filmes-client.jar excluir CODIGO
 ```
 
 Para paginar e exibir a resposta completa em JSON:
 
 ```powershell
-node client/client.js listar 5 5
-node client/client.js --json ator "Tom Hanks" --limit 5 --offset 5
+java -jar target/filmes-client.jar listar 5 5
+java -jar target/filmes-client.jar --json ator "Tom Hanks" --limit 5 --offset 5
 ```
 
 O limite padrão é 20, o máximo é 100, e `offset` informa quantos resultados pular. Os filtros comparam o nome completo sem distinguir maiúsculas/minúsculas; categorias usam os valores da Mflix, como `Drama`, `Comedy` e `Action`. JSON é usado na entrada local e na exibição; a chamada remota usa gRPC/Protobuf.
@@ -123,7 +133,7 @@ O servidor usa os status gRPC para devolver erros com descrição ao cliente:
 | `DEADLINE_EXCEEDED` | Chamada excedeu o tempo limite |
 | `RESOURCE_EXHAUSTED` | Mensagem excedeu o limite do gRPC |
 
-A CLI imprime o status e a mensagem e retorna código de saída 1 em caso de erro; com `--json`, imprime `error_code` e `message`. No menu, é possível corrigir a entrada e realizar outra chamada. A conexão inicial tem limite de 5 segundos, e cada chamada tem prazo de 15 segundos.
+A CLI imprime o status e a mensagem e retorna código de saída 1 em caso de erro; com `--json`, imprime `error_code` e `message`. Erros locais de arquivo e de sintaxe usam `CLIENT_ERROR`. No menu, é possível corrigir a entrada e realizar outra chamada. Cada chamada remota tem prazo de 15 segundos, incluindo o estabelecimento da conexão.
 
 ## Campos dos filmes
 
@@ -138,10 +148,10 @@ A atualização é parcial e preserva campos omitidos. No cadastro e na atualiza
 Com o MongoDB disponível, na pasta `RPC`:
 
 ```powershell
-npm test
+.\scripts\test.ps1
 ```
 
-Os testes iniciam um servidor gRPC Python em porta temporária e fazem chamadas com o cliente Node.js. Usam um MongoDB real e criam uma base exclusiva `rpc_filmes_test_<identificador>`, removida ao terminar; não modificam `sample_mflix`. Cobrem os sete métodos, CRUD, persistência entre conexões, paginação, filtros, dados esparsos, preservação de metadados, datas, erros de validação, código inexistente, clientes simultâneos e comandos reais da CLI. Falhas de banco e erros internos são injetados em um serviço gRPC separado para verificar os status sem derrubar o banco real.
+O script compila o cliente Java e executa `python -m unittest discover -s test -p 'test_*.py' -v` com o Python de `.venv`. Os testes iniciam um servidor gRPC Python em porta temporária e executam o **JAR Java real** para chamar os sete métodos. Usam um MongoDB real e criam uma base exclusiva `rpc_filmes_test_<identificador>`, removida ao terminar; não modificam `sample_mflix`. Cobrem CRUD, persistência entre processos Java, paginação, filtros, dados esparsos, preservação de metadados, datas, erros devolvidos ao Java, validação no servidor, tipos JSON, clientes simultâneos, recuperação do menu e serviço indisponível. Falhas de banco e erros internos são injetados em um serviço gRPC separado para verificar os status sem derrubar o banco real.
 
 ## Entregar
 
@@ -151,7 +161,7 @@ Na raiz do repositório:
 .\RPC\scripts\empacotar.ps1
 ```
 
-O arquivo `RPC_a2515725.zip` contém a pasta `RPC` com fontes, contrato, stubs gerados, exemplos, testes, instruções e scripts. Não inclui `.venv`, `node_modules`, executáveis, dados ou downloads do MongoDB, caches ou logs. Não compacte a pasta inteira após instalar as dependências.
+O arquivo `RPC_a2515725.zip` contém a pasta `RPC` com fontes Python e Java, contrato, stubs Python, `pom.xml`, Maven Wrapper, exemplos, testes, instruções e scripts. Não inclui `.venv`, `target`, JARs, executáveis, dados ou downloads do MongoDB, caches ou logs. Não compacte a pasta inteira após instalar as dependências.
 
 Quem receber deve usar **Extrair Tudo**, abrir a pasta `RPC` extraída e seguir as etapas de preparação e execução. A primeira instalação das dependências e a obtenção da Mflix requerem internet.
 
@@ -162,9 +172,12 @@ Quem receber deve usar **Extrair Tudo**, abrir a pasta `RPC` extraída e seguir 
 - `server/service.py`: implementação do serviço e tradução dos erros.
 - `server/validation.py`: validação e conversão de filmes.
 - `server/movies_pb2*.py`: mensagens e stubs gerados.
-- `client/connection.js`: canal e chamadas gRPC em Node.js.
-- `client/client.js`: comandos e menu de terminal.
+- `client/src/main/java/br/edu/rpc/client/MovieConnection.java`: canal gRPC e stub Java.
+- `client/src/main/java/br/edu/rpc/client/MovieClient.java`: comandos e menu de terminal.
+- `client/src/main/java/br/edu/rpc/client/MovieInput.java`: leitura e validação de JSON local.
+- `pom.xml`: dependências, geração dos stubs Java e criação do JAR executável.
+- `mvnw`, `mvnw.cmd` e `.mvn/wrapper`: Maven Wrapper 3.3.4, Apache License 2.0.
 - `scripts`: instalação das dependências, importação e empacotamento.
 - `test`: integração entre as duas linguagens e testes de erros.
 
-Referências: [gRPC em Python](https://grpc.io/docs/languages/python/basics/), [gRPC em Node.js](https://grpc.io/docs/languages/node/basics/), [status gRPC](https://grpc.io/docs/guides/status-codes/), [coleção Mflix](https://www.mongodb.com/docs/manual/sample-data/sample-mflix/) e [importação oficial local](https://www.mongodb.com/docs/manual/sample-data/load-sample-data-local/).
+Referências: [gRPC em Python](https://grpc.io/docs/languages/python/basics/), [gRPC em Java](https://grpc.io/docs/languages/java/quickstart/), [Maven Wrapper](https://maven.apache.org/tools/wrapper/), [status gRPC](https://grpc.io/docs/guides/status-codes/), [coleção Mflix](https://www.mongodb.com/docs/manual/sample-data/sample-mflix/) e [importação oficial local](https://www.mongodb.com/docs/manual/sample-data/load-sample-data-local/).

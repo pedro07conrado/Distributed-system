@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package rpcmovies;
 
+option java_package = "br.edu.rpc.movies";
+option java_multiple_files = true;
+option java_outer_classname = "MoviesProto";
+
 // Cada método é uma chamada remota gRPC, disponível nas duas linguagens.
 service MovieService {
   rpc CreateMovie(CreateMovieRequest) returns (MovieResponse);

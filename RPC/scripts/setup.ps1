@@ -8,11 +8,11 @@ try {
     }
     & .\.venv\Scripts\python.exe -m pip install -r requirements.txt
     if ($LASTEXITCODE -ne 0) { throw 'Falha ao instalar dependências Python.' }
-    npm.cmd ci --no-fund
-    if ($LASTEXITCODE -ne 0) { throw 'Falha ao instalar dependências Node.js.' }
     & .\.venv\Scripts\python.exe -m grpc_tools.protoc -I proto --python_out=server --grpc_python_out=server proto/movies.proto
     if ($LASTEXITCODE -ne 0) { throw 'Falha ao gerar os stubs gRPC.' }
-    Write-Host 'Dependências instaladas e stubs gRPC gerados. Prepare o MongoDB conforme o README.'
+    & .\mvnw.cmd -B -ntp package
+    if ($LASTEXITCODE -ne 0) { throw 'Falha ao compilar o cliente Java. Verifique o JDK 17 e a conexão com a internet.' }
+    Write-Host 'Servidor Python preparado e cliente Java compilado. Prepare o MongoDB conforme o README.'
 } finally {
     Pop-Location
 }

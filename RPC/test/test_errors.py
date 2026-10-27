@@ -28,7 +28,7 @@ class ErrorStatusTest(unittest.TestCase):
                 for error, status in [(PyMongoError("detalhe privado"), grpc.StatusCode.UNAVAILABLE),
                                       (RuntimeError("detalhe interno"), grpc.StatusCode.INTERNAL)]:
                     collection.find_one.side_effect = error
-                    with self.assertRaises(grpc.RpcError) as raised:
+                    with self.assertLogs(level="ERROR"), self.assertRaises(grpc.RpcError) as raised:
                         stub.GetMovie(pb.MovieId(id="000000000000000000000001"), timeout=5)
                     self.assertEqual(raised.exception.code(), status)
                     self.assertNotIn("detalhe", raised.exception.details())
