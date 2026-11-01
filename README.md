@@ -16,4 +16,4 @@ O código foi separado em classes pequenas para facilitar a leitura e a discuss�
 
 A atividade RPC usa um servidor em **Python** e um cliente de terminal em **Java 17**, com comunicação **gRPC** e persistência na coleção `sample_mflix.movies` do **MongoDB**. Implementa cadastro, consulta, atualização e exclusão de filmes, listagem por ator e categoria e tratamento de erros devolvidos ao cliente.
 
-Consulte o [README da atividade RPC](RPC/README.md) para preparar as dependências, executar o servidor e o cliente, rodar os testes e gerar o ZIP de entrega.
+As instruções de configuração, execução e testes estão no [README da atividade RPC](RPC/README.md).

@@ -1,73 +1,52 @@
-# Atividade RPC — Gerenciamento de filmes
+# RPC — Gerenciamento de filmes
 
-Servidor **Python** e cliente de terminal **Java 17**, em linguagens distintas, usando **gRPC** e os dados da coleção **`sample_mflix.movies`** do MongoDB. Implementa CRUD, listagem geral, filtros por ator e categoria e devolução de erros ao cliente.
+Servidor em Python e cliente de terminal em Java 17, com comunicação gRPC e banco MongoDB. O sistema permite cadastrar, consultar, atualizar e excluir filmes, além de listar por ator ou categoria.
 
-```text
-Cliente Java                    Servidor Python                  MongoDB
-stub gRPC     <-- gRPC -->  MovieService / PyMongo  <-- driver -->  sample_mflix.movies
-                   |
-           proto/movies.proto
-```
+O contrato das chamadas está em `proto/movies.proto`. Os dados são da coleção `sample_mflix.movies`.
 
-O arquivo `.proto` define mensagens e métodos remotos. O Python usa os stubs gerados por `grpcio-tools`; o Java usa o stub tipado `MovieServiceGrpc` gerado pelo plugin do Maven. O gRPC cuida do transporte HTTP/2 e da serialização Protobuf, sem implementar manualmente frames de socket.
+## Requisitos
 
-## 1. Preparar as dependências
+- Python 3.11 ou superior.
+- JDK 17 ou superior, com `java` e `javac` no PATH ou `JAVA_HOME` configurado.
+- MongoDB local ou Atlas, com os dados da Mflix.
 
-Requer Windows, Python 3.11+ e **JDK 17 ou superior** (`java` e `javac` disponíveis no PATH, ou `JAVA_HOME` apontando para o JDK). Na raiz do repositório:
+## Preparar
+
+Na raiz do repositório:
 
 ```powershell
 cd RPC
 .\scripts\setup.ps1
 ```
 
-O script cria `.venv`, instala as dependências Python, gera os stubs Python e compila o cliente Java em `target/filmes-client.jar`, incluindo suas bibliotecas. O **Maven Wrapper** (`mvnw.cmd`) baixa o Maven para o cache do usuário em `.m2`, fora do projeto; não é necessário instalar Maven separadamente. As dependências Java também ficam nesse cache. O script não instala MongoDB.
+O script instala as dependências Python, gera os stubs e compila o cliente Java em `target/filmes-client.jar`. O Maven Wrapper baixa o Maven e as bibliotecas na primeira execução, por isso é necessário acesso à internet.
 
-Os stubs Python acompanham o código e podem ser regenerados com:
+## Banco de dados
 
-```powershell
-.\.venv\Scripts\python.exe -m grpc_tools.protoc -I proto --python_out=server --grpc_python_out=server proto/movies.proto
-```
+A conexão padrão é `mongodb://127.0.0.1:27017`, banco `sample_mflix`, coleção `movies`. O MongoDB deve estar rodando antes de iniciar o servidor.
 
-Para gerar os stubs Java e recompilar o cliente:
+Se não houver MongoDB local, é possível iniciá-lo com Docker Desktop:
 
 ```powershell
-.\mvnw.cmd -B -ntp package
+docker compose up -d
 ```
 
-As classes Java geradas ficam em `target/generated-sources/protobuf`. O JAR executável fica em `target/filmes-client.jar`. Esses arquivos são gerados durante a preparação e não entram no ZIP de entrega. O wrapper de terminal `mvnw` também está incluído para quem usar Maven em Linux/macOS; o fluxo de preparação documentado é para PowerShell no Windows.
-
-## 2. Disponibilizar o banco e os dados Mflix
-
-O servidor usa, por padrão, `mongodb://127.0.0.1:27017`, banco `sample_mflix`, coleção `movies`. Executáveis e dados do MongoDB não acompanham a entrega. Escolha uma das opções:
-
-- **Banco local já existente:** inicie seu MongoDB e reutilize `sample_mflix.movies`, caso a coleção já esteja importada. Neste repositório, quem já preparou a RED pode iniciar o banco com `..\red-filmes\scripts\start-mongo.ps1`, executado a partir de `RPC`; a atividade RPC funciona de forma independente dessa pasta quando há outro MongoDB disponível.
-- **MongoDB Atlas:** disponibilize um cluster com a amostra `sample_mflix` e configure a URI de conexão no ambiente do servidor.
-- **MongoDB Community separado:** instale/inicie o banco fora do projeto. Como alternativa, com Docker Desktop disponível, execute `docker compose up -d` na pasta `RPC`. O arquivo `compose.yaml` publica apenas `127.0.0.1:27017` e armazena os dados em um volume Docker. Use essa opção quando não houver outro MongoDB ocupando essa porta. Para parar o contêiner preservando os dados: `docker compose stop`.
-
-Para um banco local vazio, instale também as [MongoDB Database Tools](https://www.mongodb.com/try/download/database-tools) e execute:
+Para importar os dados em um banco vazio, instale as MongoDB Database Tools, deixe `mongorestore` no PATH e execute:
 
 ```powershell
 .\scripts\import-mflix.ps1
 ```
 
-Se `mongorestore` não estiver no PATH, informe o executável:
+Se necessário, informe o caminho do executável com `-RestorePath 'C:\MongoDBTools\bin\mongorestore.exe'`. A importação mantém a coleção existente quando ela já possui filmes.
 
-```powershell
-.\scripts\import-mflix.ps1 -RestorePath 'C:\MongoDBTools\bin\mongorestore.exe'
-```
-
-O script baixa o arquivo oficial de exemplos para `%LOCALAPPDATA%\Distributed-system\mflix`, fora do projeto, e importa **somente `sample_mflix.movies`**. Não usa `--drop`; se a coleção de destino já contiver dados, pula a importação. Um arquivo oficial já baixado pode ser reutilizado com `-ArchivePath 'C:\caminho\sampledata.archive'`. Para uma importação interrompida, confira a quantidade de registros antes de usar a coleção, pois o script preserva coleções não vazias.
-
-Para trocar a conexão ou o nome do banco, configure antes de importar e iniciar o servidor:
+Para usar outro endereço ou um cluster Atlas, configure as variáveis antes de iniciar o servidor. No Atlas, carregue a amostra `sample_mflix` pelo painel do cluster.
 
 ```powershell
 $env:MONGODB_URI = 'mongodb://127.0.0.1:27017'
 $env:MONGODB_DATABASE = 'sample_mflix'
 ```
 
-No Atlas, substitua `MONGODB_URI` pela URI do cluster e carregue a amostra pela interface do Atlas. Credenciais são lidas do ambiente e não devem ser adicionadas ao código. O cliente Java conhece somente o endereço do serviço gRPC.
-
-## 3. Executar
+## Executar
 
 Na pasta `RPC`, inicie o servidor:
 
@@ -75,109 +54,40 @@ Na pasta `RPC`, inicie o servidor:
 .\.venv\Scripts\python.exe server/server.py
 ```
 
-Em outro terminal, também na pasta `RPC`, abra o menu do cliente:
+Em outro terminal, também na pasta `RPC`, abra o cliente:
 
 ```powershell
 java -jar target/filmes-client.jar
 ```
 
-O serviço atende em `127.0.0.1:50051`. Para outro endereço/porta, use `server/server.py --host 127.0.0.1 --port 50052` e `java -jar target/filmes-client.jar --host 127.0.0.1 --port 50052`. A configuração de demonstração usa gRPC local sem TLS; a conexão do MongoDB é configurada separadamente.
+O cliente abre um menu. O servidor atende em `127.0.0.1:50051`. Para trocar a porta, use `--port` tanto no servidor quanto no cliente.
 
-Também é possível chamar cada operação diretamente:
+## Comandos do cliente
+
+Também é possível executar as operações diretamente:
 
 ```powershell
 java -jar target/filmes-client.jar listar 5
-java -jar target/filmes-client.jar buscar 573a1390f29313caabcd42e8
 java -jar target/filmes-client.jar ator "Tom Hanks" --limit 5
 java -jar target/filmes-client.jar categoria Drama --limit 5
 java -jar target/filmes-client.jar criar examples/filme.json
-```
-
-O cadastro retorna o `id` do filme. Substitua `CODIGO` por esse valor:
-
-```powershell
 java -jar target/filmes-client.jar buscar CODIGO
 java -jar target/filmes-client.jar atualizar CODIGO examples/alteracao.json
 java -jar target/filmes-client.jar excluir CODIGO
 ```
 
-Para paginar e exibir a resposta completa em JSON:
+Substitua `CODIGO` pelo identificador retornado no cadastro. A atualização altera somente os campos presentes no arquivo JSON. `--json` exibe a resposta completa, e `--offset` permite paginar as consultas por ator ou categoria.
 
-```powershell
-java -jar target/filmes-client.jar listar 5 5
-java -jar target/filmes-client.jar --json ator "Tom Hanks" --limit 5 --offset 5
-```
+No cadastro, são obrigatórios `title`, `year`, `plot`, `runtime`, `cast`, `genres`, `directors`, `countries` e `type`. Campos de texto e listas não podem ser vazios; `runtime` deve ser positivo. Os campos `imdb`, `tomatoes` e `awards` são ignorados pelo serviço.
 
-O limite padrão é 20, o máximo é 100, e `offset` informa quantos resultados pular. Os filtros comparam o nome completo sem distinguir maiúsculas/minúsculas; categorias usam os valores da Mflix, como `Drama`, `Comedy` e `Action`. JSON é usado na entrada local e na exibição; a chamada remota usa gRPC/Protobuf.
+Erros retornam ao cliente com uma mensagem e um status gRPC, como `INVALID_ARGUMENT`, `NOT_FOUND` ou `UNAVAILABLE`.
 
-## Métodos e erros remotos
+## Testes
 
-| Comando | Método gRPC | Resultado |
-| --- | --- | --- |
-| `criar` | `CreateMovie` | Filme cadastrado com código gerado pelo MongoDB |
-| `buscar` | `GetMovie` | Filme pelo código |
-| `atualizar` | `UpdateMovie` | Filme com os campos informados atualizados |
-| `excluir` | `DeleteMovie` | Código e confirmação de exclusão |
-| `listar` | `ListMovies` | Página de filmes e total |
-| `ator` | `ListByActor` | Página filtrada por `cast` e total |
-| `categoria` | `ListByCategory` | Página filtrada por `genres` e total |
-
-O servidor usa os status gRPC para devolver erros com descrição ao cliente:
-
-| Status | Situação |
-| --- | --- |
-| `INVALID_ARGUMENT` | Código malformado, campo vazio/ausente ou parâmetro inválido |
-| `NOT_FOUND` | Código válido que não corresponde a um filme |
-| `UNAVAILABLE` | Falha de acesso ao MongoDB ou serviço gRPC indisponível |
-| `INTERNAL` | Falha inesperada de processamento |
-| `DEADLINE_EXCEEDED` | Chamada excedeu o tempo limite |
-| `RESOURCE_EXHAUSTED` | Mensagem excedeu o limite do gRPC |
-
-A CLI imprime o status e a mensagem e retorna código de saída 1 em caso de erro; com `--json`, imprime `error_code` e `message`. Erros locais de arquivo e de sintaxe usam `CLIENT_ERROR`. No menu, é possível corrigir a entrada e realizar outra chamada. Cada chamada remota tem prazo de 15 segundos, incluindo o estabelecimento da conexão.
-
-## Campos dos filmes
-
-No cadastro, são obrigatórios `title`, `year`, `plot`, `runtime`, `cast`, `genres`, `directors`, `countries` e `type`. Os demais campos do contrato são opcionais. `id` representa o `_id` do MongoDB; `id` e `lastupdated` são definidos pelo servidor. Textos informados devem conter caracteres além de espaços; listas informadas devem conter textos não vazios. `runtime` precisa ser positivo e `num_mflix_comments` não pode ser negativo. `released` aceita data ISO 8601.
-
-`year` aceita anos entre 1800 e 2200 e intervalos como `1994–1998` ou `1981–`; o separador legado `è` da base original também é preservado. Por isso, é texto no contrato Protobuf. A CLI aceita ano numérico no JSON, e o MongoDB continua armazenando anos únicos como números.
-
-A atualização é parcial e preserva campos omitidos. No cadastro e na atualização, `fields` identifica os campos enviados, inclusive listas vazias que precisam ser rejeitadas. A CLI preenche essa lista automaticamente; outros clientes devem informá-la para distinguir uma lista vazia de uma lista omitida. Registros originais com campos ausentes podem ser consultados. `imdb`, `tomatoes` e `awards` são ignorados pelo serviço e preservados no banco.
-
-## Testar
-
-Com o MongoDB disponível, na pasta `RPC`:
+Com o MongoDB rodando, execute na pasta `RPC`:
 
 ```powershell
 .\scripts\test.ps1
 ```
 
-O script compila o cliente Java e executa `python -m unittest discover -s test -p 'test_*.py' -v` com o Python de `.venv`. Os testes iniciam um servidor gRPC Python em porta temporária e executam o **JAR Java real** para chamar os sete métodos. Usam um MongoDB real e criam uma base exclusiva `rpc_filmes_test_<identificador>`, removida ao terminar; não modificam `sample_mflix`. Cobrem CRUD, persistência entre processos Java, paginação, filtros, dados esparsos, preservação de metadados, datas, erros devolvidos ao Java, validação no servidor, tipos JSON, clientes simultâneos, recuperação do menu e serviço indisponível. Falhas de banco e erros internos são injetados em um serviço gRPC separado para verificar os status sem derrubar o banco real.
-
-## Entregar
-
-Na raiz do repositório:
-
-```powershell
-.\RPC\scripts\empacotar.ps1
-```
-
-O arquivo `RPC_a2515725.zip` contém a pasta `RPC` com fontes Python e Java, contrato, stubs Python, `pom.xml`, Maven Wrapper, exemplos, testes, instruções e scripts. Não inclui `.venv`, `target`, JARs, executáveis, dados ou downloads do MongoDB, caches ou logs. Não compacte a pasta inteira após instalar as dependências.
-
-Quem receber deve usar **Extrair Tudo**, abrir a pasta `RPC` extraída e seguir as etapas de preparação e execução. A primeira instalação das dependências e a obtenção da Mflix requerem internet.
-
-## Arquivos principais
-
-- `proto/movies.proto`: contrato e métodos remotos.
-- `server/server.py`: inicialização gRPC e conexão MongoDB.
-- `server/service.py`: implementação do serviço e tradução dos erros.
-- `server/validation.py`: validação e conversão de filmes.
-- `server/movies_pb2*.py`: mensagens e stubs gerados.
-- `client/src/main/java/br/edu/rpc/client/MovieConnection.java`: canal gRPC e stub Java.
-- `client/src/main/java/br/edu/rpc/client/MovieClient.java`: comandos e menu de terminal.
-- `client/src/main/java/br/edu/rpc/client/MovieInput.java`: leitura e validação de JSON local.
-- `pom.xml`: dependências, geração dos stubs Java e criação do JAR executável.
-- `mvnw`, `mvnw.cmd` e `.mvn/wrapper`: Maven Wrapper 3.3.4, Apache License 2.0.
-- `scripts`: instalação das dependências, importação e empacotamento.
-- `test`: integração entre as duas linguagens e testes de erros.
-
-Referências: [gRPC em Python](https://grpc.io/docs/languages/python/basics/), [gRPC em Java](https://grpc.io/docs/languages/java/quickstart/), [Maven Wrapper](https://maven.apache.org/tools/wrapper/), [status gRPC](https://grpc.io/docs/guides/status-codes/), [coleção Mflix](https://www.mongodb.com/docs/manual/sample-data/sample-mflix/) e [importação oficial local](https://www.mongodb.com/docs/manual/sample-data/load-sample-data-local/).
+Os testes compilam o cliente Java e verificam as chamadas ao servidor Python. Usam um banco temporário, removido ao terminar, sem alterar `sample_mflix`.
